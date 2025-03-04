@@ -77,7 +77,7 @@ async def parse_current_trace(response: dict, env: AsyncHTMLEnvironment, step_re
                 selector = element["selector"]
                 element_value = element["textContent"]
             else:
-                selector = env.tree.get_selector_and_xpath(
+                selector, xpath = env.tree.get_selector_and_xpath(
                 env.tree.nodeDict[element_id])
                 logger.debug(f"Got selector result: {selector}")
                 
