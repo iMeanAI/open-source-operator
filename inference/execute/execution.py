@@ -253,7 +253,9 @@ async def run_task(
         response_type=None
 ):
     # await env.reset("https://www.google.com/")
-    await env.reset("https://www.ycombinator.com/launches")
+    # await env.reset("https://www.ycombinator.com/launches")
+    # await env.reset("https://www.xiaohongshu.com/explore")
+    await env.reset("https://www.ctrip.com/")
     response_error_count = 0
     response_total_count = 0
     vision_reward = None

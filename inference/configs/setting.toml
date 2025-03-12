@@ -29,7 +29,7 @@ available_models = [
     "meta-llama/Llama-Vision-Free",
     "convergence-ai/proxy-lite-3b"
 ]
-selected = "convergence-ai/proxy-lite-3b"
+selected = "Qwen/Qwen2-VL-72B-Instruct"
 json_model_response = false
 max_tokens = 1024
 temperature = 0.7
