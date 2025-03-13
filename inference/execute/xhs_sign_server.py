@@ -1,65 +1,130 @@
 import time
-
-from flask import Flask, request
+from flask import Flask, request, jsonify
+from gevent.pywsgi import WSGIServer
 from gevent import monkey
 from playwright.sync_api import sync_playwright
+import traceback
 
 monkey.patch_all()
 
 app = Flask(__name__)
-
-A1 = "18e8f1902edjfc566wdpi3ofq2lpbnks7a2s1g6pi50000341568"
-
+playwright = None
+browser_context = None
+context_page = None
+stealth_js_path = "./stealth.min.js"
 
 def get_context_page(instance, stealth_js_path):
-    chromium = instance.chromium
-    browser = chromium.launch(headless=True)
-    context = browser.new_context()
-    context.add_init_script(path=stealth_js_path)
-    page = context.new_page()
-    return context, page
+    try:
+        chromium = instance.chromium
+        browser = chromium.launch(headless=False)
+        context = browser.new_context()
+        context.add_init_script(path=stealth_js_path)
+        page = context.new_page()
+        return context, page
+    except Exception as e:
+        print(f"创建浏览器上下文失败: {str(e)}")
+        return None, None
 
+def reset_browser():
+    global browser_context, context_page, playwright
+    try:
+        if context_page:
+            context_page.close()
+        if browser_context:
+            browser_context.close()
+        if playwright:
+            playwright.stop()
+        
+        playwright = sync_playwright().start()
+        browser_context, context_page = get_context_page(playwright, stealth_js_path)
+        if context_page:
+            context_page.goto("https://www.xiaohongshu.com")
+            time.sleep(5)
+            context_page.reload()
+            time.sleep(1)
+            print("浏览器重置成功")
+            return True
+    except Exception as e:
+        print(f"重置浏览器失败: {str(e)}")
+        traceback.print_exc()
+        return False
 
-# 如下更改为 stealth.min.js 文件路径地址
-stealth_js_path = "./stealth.min.js"
-print("正在启动 playwright")
-playwright = sync_playwright().start()
-browser_context, context_page = get_context_page(playwright, stealth_js_path)
-context_page.goto("https://www.xiaohongshu.com")
-print("正在跳转至小红书首页")
-time.sleep(5)
-context_page.reload()
-time.sleep(1)
-cookies = browser_context.cookies()
-for cookie in cookies:
-    if cookie["name"] == "a1":
-        A1 = cookie["value"]
-        print("当前浏览器 cookie 中 a1 值为：" + cookie["value"] + "，请将需要使用的 a1 设置成一样方可签名成功")
-print("跳转小红书首页成功，等待调用")
-
+def get_current_cookies():
+    try:
+        if browser_context:
+            cookies = browser_context.cookies()
+            print(f"here cookies:{cookies}")
+            a1 = ""
+            web_session = ""
+            for cookie in cookies:
+                if cookie["name"] == "a1":
+                    a1 = cookie["value"]
+                elif cookie["name"] == "web_session":
+                    web_session = cookie["value"]
+            return {"a1": a1, "web_session": web_session}
+    except Exception as e:
+        print(f"获取cookies失败: {str(e)}")
+    return {"a1": "", "web_session": ""}
 
 def sign(uri, data, a1, web_session):
-    encrypt_params = context_page.evaluate("([url, data]) => window._webmsxyw(url, data)", [uri, data])
-    return {
-        "x-s": encrypt_params["X-s"],
-        "x-t": str(encrypt_params["X-t"])
-    }
-
+    global context_page
+    try:
+        encrypt_params = context_page.evaluate("([url, data]) => window._webmsxyw(url, data)", [uri, data])
+        return {
+            "x-s": encrypt_params["X-s"],
+            "x-t": str(encrypt_params["X-t"]),
+            "success": True
+        }
+    except Exception as e:
+        print(f"签名失败: {str(e)}")
+        if "Execution context was destroyed" in str(e):
+            if reset_browser():
+                try:
+                    encrypt_params = context_page.evaluate("([url, data]) => window._webmsxyw(url, data)", [uri, data])
+                    return {
+                        "x-s": encrypt_params["X-s"],
+                        "x-t": str(encrypt_params["X-t"]),
+                        "success": True
+                    }
+                except Exception as e2:
+                    print(f"重试签名失败: {str(e2)}")
+        return {"success": False, "error": str(e)}
 
 @app.route("/sign", methods=["POST"])
-def hello_world():
-    json = request.json
-    uri = json["uri"]
-    data = json["data"]
-    a1 = json["a1"]
-    web_session = json["web_session"]
-    return sign(uri, data, a1, web_session)
+def handle_sign():
+    try:
+        json_data = request.json
+        uri = json_data["uri"]
+        data = json_data["data"]
+        a1 = json_data["a1"]
+        web_session = json_data["web_session"]
+        result = sign(uri, data, a1, web_session)
+        if result["success"]:
+            return jsonify({
+                "x-s": result["x-s"],
+                "x-t": result["x-t"]
+            })
+        else:
+            return jsonify({"error": result["error"]}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
+@app.route("/cookies", methods=["GET"])
+def get_cookies():
+    return jsonify(get_current_cookies())
 
-@app.route("/a1", methods=["GET"])
-def get_a1():
-    return {'a1': A1}
+@app.route("/reset", methods=["POST"])
+def handle_reset():
+    if reset_browser():
+        return jsonify({"success": True, "cookies": get_current_cookies()})
+    return jsonify({"success": False}), 500
 
+# 初始化浏览器
+print("正在启动 playwright")
+reset_browser()
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5005)
+    # 使用 gevent 的 WSGI 服务器替代默认的开发服务器
+    http_server = WSGIServer(('0.0.0.0', 5005), app)
+    print("服务器启动在 http://0.0.0.0:5005")
+    http_server.serve_forever()
