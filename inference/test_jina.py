@@ -37,5 +37,5 @@ def jina_requset(prompt):
     print(response.text)
 
 if __name__ == "__main__":
-    prompt = "在小红书、携程、马蜂窝或者Reddit上搜索,并推荐一些曼哈顿的人均50刀以下的评分高的可以打卡的特色美食"
+    prompt = "在小红书、携程、马蜂窝或者Reddit 上搜索,并推荐一些曼哈顿的人均50刀以下的评分高的可以打卡的特色美食"
     jina_requset(prompt=prompt)

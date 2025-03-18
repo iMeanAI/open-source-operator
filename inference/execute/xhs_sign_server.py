@@ -56,6 +56,7 @@ def get_current_cookies():
             print(f"here cookies:{cookies}")
             a1 = ""
             web_session = ""
+            xsecappid = ""
             for cookie in cookies:
                 if cookie["name"] == "a1":
                     a1 = cookie["value"]
