@@ -1,0 +1,19 @@
+[
+    {
+        "search_index": 0,
+        "urls": [
+            "https://www.lonelyplanet.com/england/london",
+            "https://www.lonelyplanet.com/usa/los-angeles",
+            "https://www.lonelyplanet.com/france/paris",
+            "https://www.lonelyplanet.com/usa/new-york-city",
+            "https://www.lonelyplanet.com/usa/san-francisco",
+            "https://www.lonelyplanet.com/south-africa/cape-town",
+            "https://www.lonelyplanet.com/japan/tokyo",
+            "https://www.lonelyplanet.com/italy/rome",
+            "https://www.lonelyplanet.com/australia/sydney",
+            "https://www.lonelyplanet.com/usa/chicago",
+            "https://www.lonelyplanet.com/germany/berlin",
+            "https://www.lonelyplanet.com/china/hong-kong"
+        ]
+    }
+]

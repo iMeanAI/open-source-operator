@@ -58,6 +58,7 @@ data/
 *.xls
 *.db
 *.sqlite3
+!crawling_results/*.json
 
 # OS
 .DS_Store
