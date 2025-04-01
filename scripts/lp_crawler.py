@@ -4,7 +4,7 @@ import pprint
 import json
 import os
 
-API_KEY = 'xxx'
+API_KEY = 'fc-b216b25de3464369bed44d239d385d63'
 MAX_SEARCH_PAGES = 1
 LIMIT = 5
 MAX_DEPTH = 1
@@ -60,10 +60,10 @@ def get_batch_details(app: FirecrawlApp, place_links):
             urls = [urls]
         print(f"正在获取第 {index+1} 页搜索结果的详细信息...")
         batch_details = app.batch_scrape_urls(urls, params={
-                'formats': ['markdown'],
+                'formats': ['markdown', 'links'],
             }
         )
-        # pprint.pprint(batch_details) 
+        pprint.pprint(batch_details) 
         if 'data' in batch_details and len(batch_details['data']) > 0:
             save_batch_details(batch_details['data'])
 
