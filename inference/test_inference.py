@@ -7,7 +7,7 @@ async def test_acl_submission():
     try:
         # Test parameters
         instruction = "Find paper submission dates of ACL2025"
-        mode = "vision"  # Using DOM mode as default
+        mode = "dom"  # Using DOM mode as default
         
         # Load config to get the default model
         config = load_config()
@@ -53,4 +53,4 @@ async def test_travel_info():
         logging.error(f"Test error: {str(e)}")
 
 if __name__ == "__main__":
-    asyncio.run(test_travel_info()) 
+    asyncio.run(test_acl_submission()) 

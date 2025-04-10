@@ -7,7 +7,7 @@ from transformers import AutoProcessor, AutoModelForImageTextToText, TextIterato
 import torch
 from threading import Thread
 
-class ProxyLiteGenerator:
+class HostGenerator:
     def __init__(self, model="convergence-ai/proxy-lite-3b"):
         self.model = model
         self.pool = ThreadPoolExecutor(max_workers=os.cpu_count() * 2)

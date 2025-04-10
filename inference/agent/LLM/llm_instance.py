@@ -2,7 +2,7 @@ from .openai import GPTGenerator, GPTGeneratorWithJSON
 from .claude import ClaudeGenerator
 from .gemini import GeminiGenerator
 from .togetherai import TogetherAIGenerator
-from .host import ProxyLiteGenerator
+from .host import HostGenerator
 
 def create_llm_instance(model, json_mode=False, all_json_models=None):
     if "gpt" in model or "o1" in model:
@@ -23,8 +23,8 @@ def create_llm_instance(model, json_mode=False, all_json_models=None):
             raise ValueError("Gemini does not support JSON mode.")
         else:
             return GeminiGenerator(model)
-    elif "proxy-lite" in model:
-        return ProxyLiteGenerator(model)
+    elif "proxy" in model or "UI-TARS" in model:
+        return HostGenerator(model)
     else:
         if json_mode:
             raise ValueError("TogetherAI does not support JSON mode.")
